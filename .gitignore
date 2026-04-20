@@ -1,0 +1,14 @@
+# macOS / SwiftPM build artifacts
+.DS_Store
+.build/
+.swiftpm/
+
+# OMX runtime/session state
+.omx/*
+!.omx/plans/
+!.omx/plans/**
+!.omx/specs/
+!.omx/specs/**
+
+# Optional local reports and generated runtime artifacts
+!.omx/.gitkeep
