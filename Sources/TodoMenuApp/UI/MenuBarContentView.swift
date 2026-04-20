@@ -119,9 +119,11 @@ struct MenuBarContentView: View {
   }
 
   private var displayedSections: [TodayTodoSection] {
-    ManagedSection.defaultOrder.map { managedSection in
+    let sections = ManagedSection.defaultOrder.map { managedSection in
       model.todaySections.first(where: { $0.section == managedSection })
         ?? TodayTodoSection(section: managedSection, items: [])
     }
+    let nonEmptySections = sections.filter { !$0.items.isEmpty }
+    return nonEmptySections.isEmpty ? sections : nonEmptySections
   }
 }
