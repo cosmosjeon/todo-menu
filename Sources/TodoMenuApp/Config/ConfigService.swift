@@ -4,19 +4,16 @@ public struct ConfigService {
   public enum ConfigError: LocalizedError, Equatable {
     case missingConfiguration
     case invalidDirectory(URL)
-    case invalidRoutineTemplate(URL)
     case invalidScaffold(URL)
 
     public var errorDescription: String? {
       switch self {
       case .missingConfiguration:
-        return "Choose a daily notes folder and a routine template to get started."
+        return "Choose a daily notes folder and optionally a daily template to get started."
       case .invalidDirectory(let url):
         return "Daily notes folder does not exist: \(url.path)"
-      case .invalidRoutineTemplate(let url):
-        return "Routine template file does not exist: \(url.path)"
       case .invalidScaffold(let url):
-        return "Daily scaffold file does not exist: \(url.path)"
+        return "Daily template file does not exist: \(url.path)"
       }
     }
   }
@@ -68,9 +65,6 @@ public struct ConfigService {
       isDirectory.boolValue
     else {
       throw ConfigError.invalidDirectory(configuration.dailyNotesDirectory)
-    }
-    guard fileManager.fileExists(atPath: configuration.routineTemplateFile.path) else {
-      throw ConfigError.invalidRoutineTemplate(configuration.routineTemplateFile)
     }
     if let scaffold = configuration.dailyScaffoldFile,
       !fileManager.fileExists(atPath: scaffold.path)

@@ -12,16 +12,27 @@ struct AppModelTests {
       isDirectory: true
     )
     let dailyDir = root.appendingPathComponent("daily", isDirectory: true)
-    let routineFile = root.appendingPathComponent("routine.md")
+    let templateFile = root.appendingPathComponent("template.md")
     let configFile = root.appendingPathComponent("config.json")
     try FileManager.default.createDirectory(at: dailyDir, withIntermediateDirectories: true)
-    try "- [ ] Stretch\n".write(to: routineFile, atomically: true, encoding: .utf8)
+    try """
+      [[실행 허브]]
+
+      ### ROUTINE
+      - [ ] Stretch
+
+      ### SLIT
+
+      ### SPEC
+
+      ### OTHERS
+      """.write(to: templateFile, atomically: true, encoding: .utf8)
 
     let configService = ConfigService(configURL: configFile)
     try configService.save(
       AppConfiguration(
         dailyNotesDirectory: dailyDir,
-        routineTemplateFile: routineFile
+        dailyScaffoldFile: templateFile
       )
     )
 
@@ -30,7 +41,6 @@ struct AppModelTests {
       configService: configService,
       resolver: TodayFileResolver(),
       bootstrapper: DailyFileBootstrapper(),
-      parser: RoutineTemplateParser(),
       mutationService: TodoFileMutationService(),
       fileMonitor: TodayFileDirectoryMonitor(),
       nowProvider: { fixedDate }
@@ -119,7 +129,6 @@ struct AppModelTests {
     let model = AppModel(configService: configService)
 
     model.dailyNotesDirectoryText = root.appendingPathComponent("missing-daily").path
-    model.routineTemplateFileText = root.appendingPathComponent("missing-routine.md").path
     model.saveConfiguration()
 
     #expect(model.configuration == nil)
@@ -135,16 +144,13 @@ struct AppModelTests {
       isDirectory: true
     )
     let dailyDir = root.appendingPathComponent("daily", isDirectory: true)
-    let routineFile = root.appendingPathComponent("routine.md")
     let configFile = root.appendingPathComponent("config.json")
     try FileManager.default.createDirectory(at: dailyDir, withIntermediateDirectories: true)
-    try fixture(named: "routine-template").write(to: routineFile, atomically: true, encoding: .utf8)
 
     let configService = ConfigService(configURL: configFile)
     try configService.save(
       AppConfiguration(
         dailyNotesDirectory: dailyDir,
-        routineTemplateFile: routineFile,
         lastUsedSection: lastUsedSection
       )
     )
@@ -157,7 +163,6 @@ struct AppModelTests {
       configService: configService,
       resolver: TodayFileResolver(),
       bootstrapper: DailyFileBootstrapper(),
-      parser: RoutineTemplateParser(),
       mutationService: TodoFileMutationService(),
       fileMonitor: TodayFileDirectoryMonitor(),
       nowProvider: { fixedDate }

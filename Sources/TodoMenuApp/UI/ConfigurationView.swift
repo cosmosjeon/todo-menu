@@ -12,16 +12,9 @@ struct ConfigurationView: View {
         }
       }
 
-      LabeledContent("Routine template") {
+      LabeledContent("Daily template") {
         HStack {
-          TextField("/path/to/routine.md", text: $model.routineTemplateFileText)
-          Button("Choose…") { model.pickRoutineTemplateFile() }
-        }
-      }
-
-      LabeledContent("Daily scaffold") {
-        HStack {
-          TextField("Optional scaffold file", text: $model.dailyScaffoldFileText)
+          TextField("Optional daily template file", text: $model.dailyScaffoldFileText)
           Button("Choose…") { model.pickDailyScaffoldFile() }
         }
       }

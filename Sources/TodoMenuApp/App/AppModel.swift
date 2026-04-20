@@ -9,8 +9,7 @@ public final class AppModel {
   public private(set) var configuration: AppConfiguration?
   public private(set) var todayFileURL: URL?
   public private(set) var statusMessage =
-    "Configure a daily notes folder and routine file to begin."
-  public private(set) var routinePreview: [TodoItem] = []
+    "Configure a daily notes folder and optionally a daily template to begin."
   public private(set) var didCreateTodayFile = false
   public private(set) var todaySections: [TodayTodoSection] = []
   public private(set) var todaySnapshot: TodoDocumentSnapshot?
@@ -18,13 +17,11 @@ public final class AppModel {
   public var dailyNotesDirectoryText = ""
   public var quickAddText = ""
   public var quickAddSection: ManagedSection = .others
-  public var routineTemplateFileText = ""
   public var dailyScaffoldFileText = ""
 
   private let configService: ConfigService
   private let resolver: TodayFileResolver
   private let bootstrapper: DailyFileBootstrapper
-  private let parser: RoutineTemplateParser
   private let mutationService: TodoFileMutationService
   private let nowProvider: () -> Date
   private let fileMonitor: TodayFileDirectoryMonitor
@@ -34,7 +31,6 @@ public final class AppModel {
     configService: ConfigService = ConfigService(configURL: ConfigService.defaultConfigURL()),
     resolver: TodayFileResolver = TodayFileResolver(),
     bootstrapper: DailyFileBootstrapper = DailyFileBootstrapper(),
-    parser: RoutineTemplateParser = RoutineTemplateParser(),
     mutationService: TodoFileMutationService = TodoFileMutationService(),
     fileMonitor: TodayFileDirectoryMonitor = TodayFileDirectoryMonitor(),
     nowProvider: @escaping () -> Date = { .now }
@@ -42,7 +38,6 @@ public final class AppModel {
     self.configService = configService
     self.resolver = resolver
     self.bootstrapper = bootstrapper
-    self.parser = parser
     self.mutationService = mutationService
     self.fileMonitor = fileMonitor
     self.nowProvider = nowProvider
@@ -61,11 +56,9 @@ public final class AppModel {
       quickAddSection = configuration.lastUsedSection
       syncTextFields(with: configuration)
       statusMessage = "Configuration loaded."
-      routinePreview = (try? parser.parseItems(fromFile: configuration.routineTemplateFile)) ?? []
     } catch {
       configuration = nil
       statusMessage = error.localizedDescription
-      routinePreview = []
       todaySections = []
       todaySnapshot = nil
       stopMonitoringTodayFile()
@@ -76,7 +69,6 @@ public final class AppModel {
     do {
       let configuration = AppConfiguration(
         dailyNotesDirectory: URL(fileURLWithPath: dailyNotesDirectoryText),
-        routineTemplateFile: URL(fileURLWithPath: routineTemplateFileText),
         dailyScaffoldFile: dailyScaffoldFileText.isEmpty
           ? nil : URL(fileURLWithPath: dailyScaffoldFileText),
         lastUsedSection: configuration?.lastUsedSection ?? quickAddSection
@@ -84,7 +76,6 @@ public final class AppModel {
       try configService.save(configuration)
       self.configuration = configuration
       statusMessage = "Configuration saved."
-      routinePreview = try parser.parseItems(fromFile: configuration.routineTemplateFile)
       refreshTodayFile()
     } catch {
       statusMessage = error.localizedDescription
@@ -104,8 +95,7 @@ public final class AppModel {
     do {
       didCreateTodayFile = try bootstrapper.ensureTodayFile(
         at: resolution.fileURL,
-        scaffoldURL: configuration.dailyScaffoldFile,
-        routineTemplateURL: configuration.routineTemplateFile
+        scaffoldURL: configuration.dailyScaffoldFile
       )
       todayFileURL = resolution.fileURL
       let baseStatus = didCreateTodayFile
@@ -206,16 +196,6 @@ public final class AppModel {
     }
   }
 
-  public func pickRoutineTemplateFile() {
-    let panel = NSOpenPanel()
-    panel.canChooseDirectories = false
-    panel.canChooseFiles = true
-    panel.allowsMultipleSelection = false
-    if panel.runModal() == .OK {
-      routineTemplateFileText = panel.url?.path ?? routineTemplateFileText
-    }
-  }
-
   public func pickDailyScaffoldFile() {
     let panel = NSOpenPanel()
     panel.canChooseDirectories = false
@@ -305,7 +285,6 @@ public final class AppModel {
 
   private func syncTextFields(with configuration: AppConfiguration) {
     dailyNotesDirectoryText = configuration.dailyNotesDirectory.path
-    routineTemplateFileText = configuration.routineTemplateFile.path
     dailyScaffoldFileText = configuration.dailyScaffoldFile?.path ?? ""
   }
 

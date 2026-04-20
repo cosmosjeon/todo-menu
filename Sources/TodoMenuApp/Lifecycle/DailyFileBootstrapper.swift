@@ -2,19 +2,14 @@ import Foundation
 
 public struct DailyFileBootstrapper {
   public let fileManager: FileManager
-  public let parser: RoutineTemplateParser
 
-  public init(
-    fileManager: FileManager = .default, parser: RoutineTemplateParser = RoutineTemplateParser()
-  ) {
+  public init(fileManager: FileManager = .default) {
     self.fileManager = fileManager
-    self.parser = parser
   }
 
   public func ensureTodayFile(
     at url: URL,
     scaffoldURL: URL?,
-    routineTemplateURL: URL,
     sections: [ManagedSection] = ManagedSection.defaultOrder
   ) throws -> Bool {
     if fileManager.fileExists(atPath: url.path) {
@@ -23,44 +18,29 @@ public struct DailyFileBootstrapper {
 
     try fileManager.createDirectory(
       at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-    let routineItems = try parser.parseItems(fromFile: routineTemplateURL)
-    let preamble = try scaffoldPreamble(from: scaffoldURL)
-    let document = buildDocument(preamble: preamble, routineItems: routineItems, sections: sections)
+    let document = try buildDocument(scaffoldURL: scaffoldURL, sections: sections)
     try atomicWrite(document, to: url)
     return true
   }
 
-  func scaffoldPreamble(from scaffoldURL: URL?) throws -> String {
+  func buildDocument(scaffoldURL: URL?, sections: [ManagedSection]) throws -> String {
     guard let scaffoldURL else {
-      return "[[실행 허브]]"
+      return buildDefaultDocument(sections: sections)
     }
 
     let text = try String(contentsOf: scaffoldURL, encoding: .utf8)
-    let lines = text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline)
-    let headingSet = Set(ManagedSection.defaultOrder.map(\.headingLine))
-
-    let preambleLines = lines.prefix { line in
-      !headingSet.contains(String(line).trimmingCharacters(in: .whitespaces))
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty {
+      return buildDefaultDocument(sections: sections)
     }
-
-    let joined = preambleLines.map(String.init).joined(separator: "\n").trimmingCharacters(
-      in: CharacterSet.whitespacesAndNewlines)
-    return joined.isEmpty ? "[[실행 허브]]" : joined
+    return trimmed + "\n"
   }
 
-  func buildDocument(preamble: String, routineItems: [TodoItem], sections: [ManagedSection])
-    -> String
-  {
-    var chunks: [String] = [preamble.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)]
+  func buildDefaultDocument(sections: [ManagedSection]) -> String {
+    var chunks: [String] = ["[[실행 허브]]"]
 
     for section in sections {
-      var lines: [String] = [section.headingLine]
-      if section == .routine {
-        let materialized = routineItems.map(\.markdownLine)
-        lines.append(
-          contentsOf: materialized.isEmpty ? ["- [ ] Routine placeholder"] : materialized)
-      }
-      chunks.append(lines.joined(separator: "\n"))
+      chunks.append(section.headingLine)
     }
 
     return
