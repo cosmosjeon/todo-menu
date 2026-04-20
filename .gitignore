@@ -3,6 +3,9 @@
 .build/
 .swiftpm/
 
+# Packaged app bundle (built artifact)
+*.app/
+
 # OMX runtime/session state
 .omx/*
 !.omx/plans/

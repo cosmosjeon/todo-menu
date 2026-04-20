@@ -18,17 +18,19 @@ public struct DailyFileBootstrapper {
 
     try fileManager.createDirectory(
       at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-    let document = try buildDocument(scaffoldURL: scaffoldURL, sections: sections)
+    let document = buildDocument(scaffoldURL: scaffoldURL, sections: sections)
     try atomicWrite(document, to: url)
     return true
   }
 
-  func buildDocument(scaffoldURL: URL?, sections: [ManagedSection]) throws -> String {
+  func buildDocument(scaffoldURL: URL?, sections: [ManagedSection]) -> String {
     guard let scaffoldURL else {
       return buildDefaultDocument(sections: sections)
     }
 
-    let text = try String(contentsOf: scaffoldURL, encoding: .utf8)
+    guard let text = try? String(contentsOf: scaffoldURL, encoding: .utf8) else {
+      return buildDefaultDocument(sections: sections)
+    }
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     if trimmed.isEmpty {
       return buildDefaultDocument(sections: sections)

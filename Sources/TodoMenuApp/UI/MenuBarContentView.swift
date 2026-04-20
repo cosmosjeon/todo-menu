@@ -5,9 +5,6 @@ struct MenuBarContentView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
-      Text("Today")
-        .font(.headline)
-
       if model.configuration == nil {
         Text("No configuration yet.")
           .font(.subheadline)
@@ -19,17 +16,6 @@ struct MenuBarContentView: View {
         }
         .buttonStyle(.borderedProminent)
       } else {
-        if let todayFileURL = model.todayFileURL {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(todayFileURL.lastPathComponent)
-              .font(.subheadline.weight(.semibold))
-            Text(todayFileURL.path)
-              .font(.caption)
-              .foregroundStyle(.secondary)
-              .textSelection(.enabled)
-          }
-        }
-
         HStack(alignment: .top, spacing: 16) {
           ScrollView {
             VStack(alignment: .leading, spacing: 4) {
@@ -113,7 +99,6 @@ struct MenuBarContentView: View {
           }
         }
 
-        Divider()
       }
     }
     .frame(minWidth: 440, idealWidth: 460)

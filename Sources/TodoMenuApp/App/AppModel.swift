@@ -178,7 +178,10 @@ public final class AppModel {
 
   public func openTodayFile() {
     guard let todayFileURL else { return }
-    NSWorkspace.shared.open(todayFileURL)
+    let encoded = todayFileURL.path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? todayFileURL.path
+    if let obsidianURL = URL(string: "obsidian://open?path=\(encoded)") {
+      NSWorkspace.shared.open(obsidianURL)
+    }
   }
 
   public func revealDailyDirectory() {
