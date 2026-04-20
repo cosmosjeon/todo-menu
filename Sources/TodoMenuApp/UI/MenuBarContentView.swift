@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarContentView: View {
   @Bindable var model: AppModel
+  @State private var isQuickAddExpanded = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 12) {
@@ -30,24 +31,27 @@ struct MenuBarContentView: View {
           }
         }
 
-        VStack(alignment: .leading, spacing: 8) {
-          Text("Quick add")
-            .font(.subheadline.weight(.semibold))
-          Picker("Section", selection: $model.quickAddSection) {
-            ForEach(ManagedSection.defaultOrder, id: \.self) { section in
-              Text(section.rawValue).tag(section)
+        DisclosureGroup(isExpanded: $isQuickAddExpanded) {
+          VStack(alignment: .leading, spacing: 8) {
+            Picker("Section", selection: $model.quickAddSection) {
+              ForEach(ManagedSection.defaultOrder, id: \.self) { section in
+                Text(section.rawValue).tag(section)
+              }
+            }
+            .pickerStyle(.segmented)
+
+            HStack(spacing: 8) {
+              TextField("Add a todo", text: $model.quickAddText)
+                .textFieldStyle(.roundedBorder)
+                .onSubmit { model.addQuickItem() }
+
+              Button("Add") { model.addQuickItem() }
+                .disabled(isQuickAddDisabled)
             }
           }
-          .pickerStyle(.segmented)
-
-          HStack(spacing: 8) {
-            TextField("Add a todo", text: $model.quickAddText)
-              .textFieldStyle(.roundedBorder)
-              .onSubmit { model.addQuickItem() }
-
-            Button("Add") { model.addQuickItem() }
-              .disabled(isQuickAddDisabled)
-          }
+        } label: {
+          Text("Quick add")
+            .font(.subheadline.weight(.semibold))
         }
 
         ScrollView {
