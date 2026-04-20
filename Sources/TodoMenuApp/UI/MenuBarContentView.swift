@@ -11,7 +11,13 @@ struct MenuBarContentView: View {
       if model.configuration == nil {
         Text("No configuration yet.")
           .font(.subheadline)
-        ConfigurationView(model: model)
+        Text("Open Settings to choose your daily notes folder and templates.")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+        SettingsLink {
+          Label("Open Settings", systemImage: "gearshape")
+        }
+        .buttonStyle(.borderedProminent)
       } else {
         if let todayFileURL = model.todayFileURL {
           VStack(alignment: .leading, spacing: 4) {
@@ -93,10 +99,12 @@ struct MenuBarContentView: View {
           Button("Refresh") { model.refreshTodayFile() }
           Button("Open file") { model.openTodayFile() }
           Button("Reveal folder") { model.revealDailyDirectory() }
+          SettingsLink {
+            Image(systemName: "gearshape")
+          }
         }
 
         Divider()
-        ConfigurationView(model: model)
       }
     }
     .frame(minWidth: 440, idealWidth: 460)
